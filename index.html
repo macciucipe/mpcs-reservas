@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservas · Heroes 1982</title>
+  <style>
+    :root {
+      --navy:    #0C1F3A;
+      --gold:    #C9A84C;
+      --gold-lt: #F0D98C;
+      --text:    #1a1a2e;
+      --muted:   #6b7280;
+      --border:  rgba(0,0,0,0.12);
+      --bg:      #F9F7F4;
+      --white:   #ffffff;
+      --success: #0F6E56;
+      --error:   #A32D2D;
+      --radius:  12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* ── HEADER ── */
+    .hero {
+      background:var(--navy); color:#fff;
+      padding:3rem 1.5rem 2.5rem;
+      text-align:center;
+    }
+    .hero-logo {
+      font-size:13px; letter-spacing:.2em; text-transform:uppercase;
+      color:var(--gold); margin-bottom:1rem; font-weight:500;
+    }
+    .hero h1 { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; margin-bottom:.5rem; }
+    .hero p  { font-size:16px; color:rgba(255,255,255,0.65); margin-bottom:2rem; }
+    .hero-info {
+      display:inline-flex; gap:2rem; flex-wrap:wrap; justify-content:center;
+      font-size:13px; color:rgba(255,255,255,0.6);
+    }
+    .hero-info span { display:flex; align-items:center; gap:6px; }
+
+    /* ── CONTENIDO ── */
+    .container { max-width:680px; margin:0 auto; padding:2rem 1.25rem; }
+
+    /* ── PASOS ── */
+    .steps { display:flex; justify-content:center; gap:0; margin-bottom:2.5rem; }
+    .step {
+      display:flex; align-items:center; gap:8px; font-size:13px;
+      color:var(--muted); padding:8px 16px;
+    }
+    .step.active { color:var(--navy); font-weight:600; }
+    .step.done   { color:var(--success); }
+    .step-num {
+      width:26px; height:26px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700;
+      background:var(--border); color:var(--muted);
+      flex-shrink:0;
+    }
+    .step.active .step-num { background:var(--navy); color:#fff; }
+    .step.done   .step-num { background:var(--success); color:#fff; }
+    .step-sep { width:24px; height:1px; background:var(--border); flex-shrink:0; }
+
+    /* ── CARD ── */
+    .card {
+      background:var(--white); border-radius:var(--radius);
+      border:1px solid var(--border); overflow:hidden;
+      box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card-header {
+      padding:1.25rem 1.5rem; border-bottom:1px solid var(--border);
+      font-size:17px; font-weight:700;
+    }
+    .card-body { padding:1.5rem; }
+
+    /* ── CAMPOS ── */
+    .field { margin-bottom:1.25rem; }
+    .field label {
+      display:block; font-size:12px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.05em;
+      color:var(--muted); margin-bottom:6px;
+    }
+    .field input, .field select, .field textarea {
+      width:100%; padding:12px 14px; font-size:15px;
+      border:1.5px solid var(--border); border-radius:10px;
+      background:var(--white); color:var(--text); outline:none;
+      transition:border-color .15s; -webkit-appearance:none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color:var(--navy);
+      box-shadow:0 0 0 3px rgba(12,31,58,0.1);
+    }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+
+    /* ── FECHA SELECTOR ── */
+    .fecha-grid {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
+      margin-bottom:1rem;
+    }
+    .dia-btn {
+      padding:8px 4px; border:1.5px solid var(--border); border-radius:8px;
+      background:var(--white); cursor:pointer; text-align:center;
+      font-size:11px; transition:all .15s; line-height:1.4;
+    }
+    .dia-btn:hover:not(:disabled) { border-color:var(--navy); }
+    .dia-btn.selected { background:var(--navy); color:#fff; border-color:var(--navy); }
+    .dia-btn:disabled { opacity:.35; cursor:not-allowed; }
+    .dia-btn .dia-nombre { font-weight:600; font-size:10px; }
+    .dia-btn .dia-num    { font-size:15px; font-weight:700; }
+
+    /* ── HORA SELECTOR ── */
+    .horas-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+    }
+    .hora-btn {
+      padding:10px 6px; border:1.5px solid var(--border); border-radius:8px;
+      background:var(--white); cursor:pointer; text-align:center;
+      font-size:14px; font-weight:600; transition:all .15s;
+    }
+    .hora-btn:hover:not(:disabled) { border-color:var(--navy); }
+    .hora-btn.selected { background:var(--navy); color:#fff; border-color:var(--navy); }
+    .hora-btn:disabled { opacity:.35; cursor:not-allowed; background:var(--bg); }
+    .hora-btn .disp {
+      display:block; font-size:10px; font-weight:400;
+      color:var(--muted); margin-top:2px;
+    }
+    .hora-btn.selected .disp { color:rgba(255,255,255,0.7); }
+
+    /* ── PERSONAS ── */
+    .personas-ctrl {
+      display:flex; align-items:center; gap:16px;
+      border:1.5px solid var(--border); border-radius:10px;
+      padding:10px 16px; width:fit-content;
+    }
+    .personas-ctrl button {
+      width:36px; height:36px; border-radius:50%;
+      border:1.5px solid var(--border); background:var(--white);
+      font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .personas-ctrl button:hover { border-color:var(--navy); background:var(--navy); color:#fff; }
+    .personas-ctrl .count { font-size:22px; font-weight:700; min-width:32px; text-align:center; }
+
+    /* ── OCASIÓN CHIPS ── */
+    .chips { display:flex; gap:8px; flex-wrap:wrap; }
+    .chip {
+      padding:7px 14px; border:1.5px solid var(--border); border-radius:20px;
+      font-size:13px; cursor:pointer; transition:all .15s; background:var(--white);
+    }
+    .chip:hover   { border-color:var(--navy); }
+    .chip.selected { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+    /* ── RESUMEN ── */
+    .resumen {
+      background:var(--navy); color:#fff; border-radius:var(--radius);
+      padding:1.5rem; margin-bottom:1.5rem;
+    }
+    .resumen h3 { font-size:16px; margin-bottom:1rem; color:var(--gold-lt); }
+    .resumen-row {
+      display:flex; justify-content:space-between; padding:6px 0;
+      border-bottom:1px solid rgba(255,255,255,0.1); font-size:14px;
+    }
+    .resumen-row:last-child { border:none; }
+    .resumen-row span:first-child { color:rgba(255,255,255,0.65); }
+    .resumen-row span:last-child  { font-weight:600; }
+
+    /* ── BOTONES ── */
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:14px 28px; border-radius:10px; font-size:15px; font-weight:700;
+      cursor:pointer; border:none; transition:all .15s; width:100%;
+    }
+    .btn-primary { background:var(--navy); color:#fff; }
+    .btn-primary:hover { background:#0a1829; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-gold { background:var(--gold); color:var(--navy); }
+    .btn-gold:hover { background:var(--gold-lt); }
+    .btn-ghost { background:transparent; color:var(--muted); border:1.5px solid var(--border); }
+
+    /* ── ÉXITO ── */
+    .success-screen {
+      text-align:center; padding:3rem 1.5rem; display:none;
+    }
+    .success-icon {
+      width:80px; height:80px; background:#D1FAE5; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 1.5rem; font-size:36px;
+    }
+    .success-screen h2 { font-size:24px; font-weight:800; margin-bottom:.5rem; }
+    .success-screen p  { color:var(--muted); font-size:15px; margin-bottom:1.5rem; }
+    .codigo-reserva {
+      font-size:28px; font-weight:800; letter-spacing:.15em;
+      color:var(--navy); background:var(--bg); border-radius:10px;
+      padding:1rem 2rem; display:inline-block; margin-bottom:1.5rem;
+      border:2px dashed var(--border);
+    }
+
+    .alert-error {
+      background:#FEE2E2; color:var(--error); border-radius:8px;
+      padding:10px 14px; font-size:13px; margin-bottom:1rem;
+    }
+
+    @media (max-width:480px) {
+      .field-row  { grid-template-columns:1fr; }
+      .horas-grid { grid-template-columns:repeat(3,1fr); }
+      .fecha-grid { grid-template-columns:repeat(4,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="hero">
+    <div class="hero-logo">Heroes 1982 · Miraflores</div>
+    <h1>Reservá tu mesa</h1>
+    <p>Experiencia gastronómica en el corazón de Miraflores</p>
+    <div class="hero-info">
+      <span>📅 Mié-Sáb 18:00–24:00</span>
+      <span>☀️ Dom 12:00–18:00</span>
+      <span>👥 Mesas comunitarias</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- PASOS -->
+    <div class="steps">
+      <div class="step active" id="step-1">
+        <div class="step-num">1</div>
+        <span>Fecha y hora</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step-2">
+        <div class="step-num">2</div>
+        <span>Tu información</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step-3">
+        <div class="step-num">3</div>
+        <span>Confirmar</span>
+      </div>
+    </div>
+
+    <!-- PASO 1: Fecha, hora y personas -->
+    <div id="vista-paso1">
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-header">¿Cuándo venís?</div>
+        <div class="card-body">
+          <!-- Fecha -->
+          <div class="field">
+            <label>Seleccioná la fecha</label>
+            <div class="fecha-grid" id="fecha-grid"></div>
+          </div>
+          <!-- Hora -->
+          <div class="field" id="sec-hora" style="display:none">
+            <label>Horario</label>
+            <div class="horas-grid" id="horas-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-header">¿Cuántas personas?</div>
+        <div class="card-body">
+          <div class="personas-ctrl">
+            <button onclick="cambiarPersonas(-1)">−</button>
+            <div class="count" id="personas-count">2</div>
+            <button onclick="cambiarPersonas(1)">+</button>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:10px">
+            Máximo 126 personas. Para grupos grandes escribinos al WhatsApp.
+          </p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-header">¿Es una ocasión especial? <span style="font-weight:400;font-size:14px;color:var(--muted)">(opcional)</span></div>
+        <div class="card-body">
+          <div class="chips" id="ocasion-chips">
+            <div class="chip" onclick="setOcasion(this,'')">Sin ocasión</div>
+            <div class="chip" onclick="setOcasion(this,'cumpleaños')">🎂 Cumpleaños</div>
+            <div class="chip" onclick="setOcasion(this,'aniversario')">💑 Aniversario</div>
+            <div class="chip" onclick="setOcasion(this,'corporativo')">💼 Corporativo</div>
+            <div class="chip" onclick="setOcasion(this,'despedida')">🥂 Despedida</div>
+            <div class="chip" onclick="setOcasion(this,'otro')">✨ Otro</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="msg-paso1" class="alert-error" style="display:none"></div>
+      <button class="btn btn-primary" onclick="irPaso2()">Continuar →</button>
+    </div>
+
+    <!-- PASO 2: Datos del cliente -->
+    <div id="vista-paso2" style="display:none">
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-header">Tus datos</div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field">
+              <label>Nombre *</label>
+              <input type="text" id="cli-nombre" placeholder="Tu nombre" autocomplete="given-name" />
+            </div>
+            <div class="field">
+              <label>Apellido</label>
+              <input type="text" id="cli-apellido" placeholder="Tu apellido" autocomplete="family-name" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Teléfono / WhatsApp *</label>
+            <input type="tel" id="cli-telefono" placeholder="999 999 999" autocomplete="tel"
+              oninput="this.value=this.value.replace(/[^0-9+\s]/g,'')" />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="cli-email" placeholder="tu@email.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label>¿Algún pedido especial? <span style="font-weight:400">(alergias, decoración, etc.)</span></label>
+            <textarea id="cli-notas" rows="3" placeholder="Ej: Soy celíaco, me gustaría una torta sorpresa..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="msg-paso2" class="alert-error" style="display:none"></div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <button class="btn btn-ghost" onclick="irPaso1()">← Volver</button>
+        <button class="btn btn-primary" onclick="irPaso3()">Ver resumen →</button>
+      </div>
+    </div>
+
+    <!-- PASO 3: Resumen y confirmar -->
+    <div id="vista-paso3" style="display:none">
+      <div class="resumen">
+        <h3>Resumen de tu reserva</h3>
+        <div class="resumen-row"><span>Fecha</span><span id="res-fecha">—</span></div>
+        <div class="resumen-row"><span>Horario</span><span id="res-hora">—</span></div>
+        <div class="resumen-row"><span>Personas</span><span id="res-personas">—</span></div>
+        <div class="resumen-row" id="res-ocasion-row" style="display:none"><span>Ocasión</span><span id="res-ocasion">—</span></div>
+        <div class="resumen-row"><span>Nombre</span><span id="res-nombre">—</span></div>
+        <div class="resumen-row"><span>Teléfono</span><span id="res-telefono">—</span></div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.25rem;padding:1.25rem">
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">
+          📱 <strong>Confirmación:</strong> Te contactaremos por WhatsApp para confirmar tu reserva.<br>
+          ⏱ <strong>Llegada:</strong> Te esperamos hasta 15 minutos después del horario reservado.<br>
+          ❌ <strong>Cancelaciones:</strong> Podés cancelar hasta 2 horas antes sin cargo.
+        </p>
+      </div>
+
+      <div id="msg-paso3" class="alert-error" style="display:none"></div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <button class="btn btn-ghost" onclick="irPaso2()">← Editar</button>
+        <button class="btn btn-gold" id="btn-confirmar" onclick="confirmarReserva()">
+          ✓ Confirmar reserva
+        </button>
+      </div>
+    </div>
+
+    <!-- ÉXITO -->
+    <div class="success-screen" id="vista-exito">
+      <div class="success-icon">✓</div>
+      <h2>¡Reserva recibida!</h2>
+      <p>Te contactaremos por WhatsApp al <strong id="exito-tel">—</strong> para confirmar.</p>
+      <div class="codigo-reserva" id="exito-codigo">——</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:2rem">
+        Guardá este código — lo vas a necesitar si querés modificar o cancelar tu reserva.
+      </p>
+      <a href="/" class="btn btn-primary" style="text-decoration:none;display:inline-flex;width:auto;padding:12px 28px">
+        Hacer otra reserva
+      </a>
+    </div>
+
+  </div><!-- /container -->
+
+  <footer style="text-align:center;padding:2rem;font-size:12px;color:var(--muted)">
+    Heroes 1982 · Miraflores, Lima · Reservas y consultas: WhatsApp
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL     = 'https://zaurhkkcksqsaghpegdn.supabase.co';
+    const SUPABASE_ANON_KEY= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdXJoa2tja3Nxc2FnaHBlZ2RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODE3OTAsImV4cCI6MjA5NTY1Nzc5MH0.1_wadNmhGm_JUfnZ382hu8SuZ7neRrwuK1ApelfTYP4';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const ID_LOCAL = 'MSJ-001';
+    const DIAS     = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const MESES    = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+    let personas  = 2;
+    let fechaSel  = null;   // Date object
+    let horaSel   = null;   // string "HH:MM"
+    let ocasionSel= '';
+    let slots     = [];     // slots disponibles del servidor
+    let horarios  = [];     // días habilitados
+
+    async function init() {
+      const [{ data: h }, { data: s }] = await Promise.all([
+        sb.from('reservas_horarios').select('dia_semana,hora_inicio,hora_fin').eq('id_local', ID_LOCAL).eq('activo', true),
+        sb.from('reservas_slots').select('dia_semana,hora,habilitado').eq('id_local', ID_LOCAL).eq('habilitado', true),
+      ]);
+      horarios = h || [];
+      slots    = s || [];
+      renderFechas();
+    }
+
+    function renderFechas() {
+      const grid = document.getElementById('fecha-grid');
+      const hoy  = new Date();
+      hoy.setHours(0,0,0,0);
+      const diasHabilitados = new Set(horarios.map(h => h.dia_semana));
+      let html = '';
+      for (let i = 1; i <= 28; i++) {
+        const d = new Date(hoy); d.setDate(hoy.getDate() + i);
+        const dow = d.getDay();
+        const habilitado = diasHabilitados.has(dow);
+        const isSelected = fechaSel && d.toDateString() === fechaSel.toDateString();
+        html += `<button class="dia-btn ${isSelected?'selected':''}" ${!habilitado?'disabled':''}
+          onclick="seleccionarFecha(${d.getTime()})">
+          <div class="dia-nombre">${DIAS[dow]}</div>
+          <div class="dia-num">${d.getDate()}</div>
+        </button>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    async function seleccionarFecha(ts) {
+      fechaSel = new Date(ts);
+      horaSel  = null;
+      renderFechas();
+      await renderHoras();
+      document.getElementById('sec-hora').style.display = 'block';
+    }
+
+    async function renderHoras() {
+      const dow = fechaSel.getDay();
+      const fechaStr = fechaSel.toISOString().split('T')[0];
+      const slotsDelDia = slots.filter(s => s.dia_semana === dow);
+
+      // Obtener disponibilidad para cada slot
+      const horasGrid = document.getElementById('horas-grid');
+      horasGrid.innerHTML = '<div style="color:var(--muted);font-size:13px">Cargando horarios...</div>';
+
+      const disponibilidades = await Promise.all(
+        slotsDelDia.map(s =>
+          sb.rpc('get_disponibilidad', { p_id_local: ID_LOCAL, p_fecha: fechaStr, p_hora: s.hora })
+        )
+      );
+
+      horasGrid.innerHTML = slotsDelDia.map((s, i) => {
+        const disp = disponibilidades[i]?.data ?? 0;
+        const hora = s.hora.slice(0,5);
+        const agotado = disp <= 0;
+        const isSelected = horaSel === hora;
+        return `<button class="hora-btn ${isSelected?'selected':''}" ${agotado?'disabled':''}
+          onclick="seleccionarHora('${hora}')">
+          ${hora}
+          <span class="disp">${agotado ? 'Completo' : `${disp} lugares`}</span>
+        </button>`;
+      }).join('');
+    }
+
+    function seleccionarHora(hora) {
+      horaSel = hora;
+      renderHoras();
+    }
+
+    function cambiarPersonas(delta) {
+      personas = Math.max(1, Math.min(126, personas + delta));
+      document.getElementById('personas-count').textContent = personas;
+    }
+
+    function setOcasion(el, val) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      ocasionSel = val;
+    }
+
+    function irPaso2() {
+      const msg = document.getElementById('msg-paso1');
+      if (!fechaSel) { msg.textContent='Seleccioná una fecha.'; msg.style.display='block'; return; }
+      if (!horaSel)  { msg.textContent='Seleccioná un horario.'; msg.style.display='block'; return; }
+      msg.style.display = 'none';
+      setStep(2);
+      document.getElementById('vista-paso1').style.display = 'none';
+      document.getElementById('vista-paso2').style.display = 'block';
+    }
+
+    function irPaso1() {
+      setStep(1);
+      document.getElementById('vista-paso2').style.display = 'none';
+      document.getElementById('vista-paso1').style.display = 'block';
+    }
+
+    function irPaso3() {
+      const msg    = document.getElementById('msg-paso2');
+      const nombre = document.getElementById('cli-nombre').value.trim();
+      const tel    = document.getElementById('cli-telefono').value.trim();
+      if (!nombre) { msg.textContent='Ingresá tu nombre.'; msg.style.display='block'; return; }
+      if (!tel)    { msg.textContent='Ingresá tu teléfono.'; msg.style.display='block'; return; }
+      msg.style.display = 'none';
+
+      // Rellenar resumen
+      const fechaFmt = `${fechaSel.getDate()} de ${MESES[fechaSel.getMonth()]} ${fechaSel.getFullYear()}`;
+      document.getElementById('res-fecha').textContent    = fechaFmt;
+      document.getElementById('res-hora').textContent     = horaSel + ' hs';
+      document.getElementById('res-personas').textContent = `${personas} persona${personas>1?'s':''}`;
+      document.getElementById('res-nombre').textContent   = nombre + ' ' + (document.getElementById('cli-apellido').value||'');
+      document.getElementById('res-telefono').textContent = tel;
+      if (ocasionSel) {
+        document.getElementById('res-ocasion').textContent = ocasionSel;
+        document.getElementById('res-ocasion-row').style.display = 'flex';
+      }
+
+      setStep(3);
+      document.getElementById('vista-paso2').style.display = 'none';
+      document.getElementById('vista-paso3').style.display = 'block';
+    }
+
+    function irPaso2b() {
+      setStep(2);
+      document.getElementById('vista-paso3').style.display = 'none';
+      document.getElementById('vista-paso2').style.display = 'block';
+    }
+
+    async function confirmarReserva() {
+      const btn = document.getElementById('btn-confirmar');
+      const msg = document.getElementById('msg-paso3');
+      btn.disabled = true; btn.textContent = 'Enviando...';
+
+      try {
+        const { data: codigo } = await sb.rpc('generar_codigo_reserva');
+        const fechaStr = fechaSel.toISOString().split('T')[0];
+
+        const { error } = await sb.from('reservas').insert({
+          id_local:     ID_LOCAL,
+          fecha:        fechaStr,
+          hora:         horaSel,
+          nombre:       document.getElementById('cli-nombre').value.trim(),
+          apellido:     document.getElementById('cli-apellido').value.trim() || null,
+          email:        document.getElementById('cli-email').value.trim() || null,
+          telefono:     document.getElementById('cli-telefono').value.trim(),
+          personas,
+          ocasion:      ocasionSel || null,
+          notas_cliente: document.getElementById('cli-notas').value.trim() || null,
+          estado:       'pendiente',
+          canal:        'web',
+          codigo_confirm: codigo,
+        });
+
+        if (error) throw new Error(error.message);
+
+        // Mostrar pantalla de éxito
+        document.getElementById('vista-paso3').style.display = 'none';
+        document.getElementById('vista-exito').style.display = 'block';
+        document.getElementById('exito-tel').textContent     = document.getElementById('cli-telefono').value.trim();
+        document.getElementById('exito-codigo').textContent  = codigo;
+
+      } catch(e) {
+        msg.textContent = 'Error al procesar tu reserva. Intentá de nuevo.';
+        msg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '✓ Confirmar reserva';
+      }
+    }
+
+    function setStep(n) {
+      [1,2,3].forEach(i => {
+        const el = document.getElementById(`step-${i}`);
+        el.classList.remove('active','done');
+        if (i < n)  el.classList.add('done');
+        if (i === n) el.classList.add('active');
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
