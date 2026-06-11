@@ -204,6 +204,25 @@
       padding:10px 14px; font-size:13px; margin-bottom:1rem;
     }
 
+    /* Flatpickr customization */
+    .flatpickr-calendar { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover { background:var(--navy); border-color:var(--navy); }
+    .flatpickr-day:hover { background:var(--bg); }
+    .flatpickr-months { background:var(--navy); border-radius:12px 12px 0 0; }
+    .flatpickr-month, .flatpickr-weekday, .flatpickr-prev-month, .flatpickr-next-month { color:#fff !important; fill:#fff !important; }
+    .flatpickr-day.flatpickr-disabled { opacity:.3; }
+    .date-input-wrap { position:relative; }
+    .date-input-wrap input {
+      width:100%; padding:12px 14px 12px 42px; font-size:15px;
+      border:1.5px solid var(--border); border-radius:10px;
+      background:var(--white); color:var(--text); outline:none; cursor:pointer;
+    }
+    .date-input-wrap input:focus { border-color:var(--navy); box-shadow:0 0 0 3px rgba(12,31,58,0.1); }
+    .date-input-wrap .cal-icon {
+      position:absolute; left:14px; top:50%; transform:translateY(-50%);
+      color:var(--muted); pointer-events:none; font-size:16px;
+    }
+
     @media (max-width:480px) {
       .field-row  { grid-template-columns:1fr; }
       .horas-grid { grid-template-columns:repeat(3,1fr); }
@@ -255,7 +274,10 @@
           <!-- Fecha -->
           <div class="field">
             <label>Seleccioná la fecha</label>
-            <div class="fecha-grid" id="fecha-grid"></div>
+            <div class="date-input-wrap">
+              <span class="cal-icon">📅</span>
+              <input type="text" id="fecha-picker" placeholder="Elegí una fecha" readonly />
+            </div>
           </div>
           <!-- Hora -->
           <div class="field" id="sec-hora" style="display:none">
@@ -274,7 +296,8 @@
             <button onclick="cambiarPersonas(1)">+</button>
           </div>
           <p style="font-size:13px;color:var(--muted);margin-top:10px">
-            Máximo 126 personas. Para grupos grandes escribinos al WhatsApp.
+            Máximo 12 personas por reserva web. Para grupos más grandes escribinos al
+            <a href="https://wa.me/51999999999" target="_blank" style="color:var(--navy);font-weight:600">WhatsApp</a>.
           </p>
         </div>
       </div>
@@ -373,6 +396,15 @@
       <p style="font-size:13px;color:var(--muted);margin-bottom:2rem">
         Guardá este código — lo vas a necesitar si querés modificar o cancelar tu reserva.
       </p>
+      <div style="background:#F9F7F4;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;text-align:left">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px">📍 Dónde encontrarnos</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">Heroes 1982</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:12px">Av. República de Panamá 6544, Miraflores</div>
+        <a href="https://maps.app.goo.gl/9DmuA1QqHWF75AFE9" target="_blank"
+          style="display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+          🗺 Ver en Google Maps
+        </a>
+      </div>
       <a href="/" class="btn btn-primary" style="text-decoration:none;display:inline-flex;width:auto;padding:12px 28px">
         Hacer otra reserva
       </a>
@@ -384,6 +416,10 @@
     Heroes 1982 · Miraflores, Lima · Reservas y consultas: WhatsApp
   </footer>
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL     = 'https://zaurhkkcksqsaghpegdn.supabase.co';
@@ -408,35 +444,31 @@
       ]);
       horarios = h || [];
       slots    = s || [];
-      renderFechas();
+      initFlatpickr();
     }
 
-    function renderFechas() {
-      const grid = document.getElementById('fecha-grid');
-      const hoy  = new Date();
-      hoy.setHours(0,0,0,0);
+    function initFlatpickr() {
       const diasHabilitados = new Set(horarios.map(h => h.dia_semana));
-      let html = '';
-      for (let i = 1; i <= 28; i++) {
-        const d = new Date(hoy); d.setDate(hoy.getDate() + i);
-        const dow = d.getDay();
-        const habilitado = diasHabilitados.has(dow);
-        const isSelected = fechaSel && d.toDateString() === fechaSel.toDateString();
-        html += `<button class="dia-btn ${isSelected?'selected':''}" ${!habilitado?'disabled':''}
-          onclick="seleccionarFecha(${d.getTime()})">
-          <div class="dia-nombre">${DIAS[dow]}</div>
-          <div class="dia-num">${d.getDate()}</div>
-        </button>`;
-      }
-      grid.innerHTML = html;
-    }
+      const hoy = new Date();
+      const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
 
-    async function seleccionarFecha(ts) {
-      fechaSel = new Date(ts);
-      horaSel  = null;
-      renderFechas();
-      await renderHoras();
-      document.getElementById('sec-hora').style.display = 'block';
+      flatpickr('#fecha-picker', {
+        locale: 'es',
+        minDate: new Date(hoy.getTime() + 60*60*1000), // mínimo 1 hora desde ahora
+        maxDate,
+        disable: [
+          date => !diasHabilitados.has(date.getDay())
+        ],
+        dateFormat: 'd \de F, Y',
+        disableMobile: true,
+        onChange: async (selectedDates) => {
+          if (!selectedDates.length) return;
+          fechaSel = selectedDates[0];
+          horaSel  = null;
+          await renderHoras();
+          document.getElementById('sec-hora').style.display = 'block';
+        }
+      });
     }
 
     async function renderHoras() {
@@ -473,7 +505,7 @@
     }
 
     function cambiarPersonas(delta) {
-      personas = Math.max(1, Math.min(126, personas + delta));
+      personas = Math.max(1, Math.min(12, personas + delta));
       document.getElementById('personas-count').textContent = personas;
     }
 
